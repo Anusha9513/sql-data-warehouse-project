@@ -169,13 +169,16 @@ Print'>> Inserting data into :silver.erp_loc_a101';
 
 insert into silver.erp_loc_a101
 (cid,cntry)
+	select cid,cntry from( 
 select replace(cid,'-','')cid,
 case when trim(cntry)= 'DE' then 'Germany'
 when trim(cntry) in ('US','USA') then 'United States'
 when trim(cntry)='' or cntry is null then 'n/a'
 else trim(cntry)
-end as cntry 
-from Bronze.erp_loc_a101
+end as cntry, 
+	row_number() over(partition by replace(cid,'-','') order by cid) as rn
+from Bronze.erp_loc_a101)t
+where rn=1	
 set @end_time=getdate();
 print'>> Load Duration: '+CASt( Datediff(second, @start_time, @end_time) As nvarchar) + 'seconds';
 print'>>---------------'
